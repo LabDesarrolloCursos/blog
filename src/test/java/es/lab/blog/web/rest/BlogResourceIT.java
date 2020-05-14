@@ -3,6 +3,7 @@ package es.lab.blog.web.rest;
 import es.lab.blog.BlogApp;
 import es.lab.blog.domain.Blog;
 import es.lab.blog.repository.BlogRepository;
+import es.lab.blog.repository.UserRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,9 @@ public class BlogResourceIT {
     @Autowired
     private MockMvc restBlogMockMvc;
 
+    @Autowired
+    private UserRepository userRepository;
+
     private Blog blog;
 
     /**
@@ -53,12 +57,20 @@ public class BlogResourceIT {
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
      */
-    public static Blog createEntity(EntityManager em) {
-        Blog blog = new Blog()
+    // public static Blog createEntity(EntityManager em) {
+    //     Blog blog = new Blog()
+    //         .name(DEFAULT_NAME)
+    //         .handle(DEFAULT_HANDLE);
+    //     return blog;
+    // }
+
+    public Blog createEntity(EntityManager em) {
+    Blog blog = new Blog()
             .name(DEFAULT_NAME)
-            .handle(DEFAULT_HANDLE);
-        return blog;
-    }
+            .handle(DEFAULT_HANDLE)
+            .user(userRepository.findOneByLogin("user").get());
+    return blog;
+}
     /**
      * Create an updated entity for this test.
      *
@@ -79,6 +91,7 @@ public class BlogResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser
     public void createBlog() throws Exception {
         int databaseSizeBeforeCreate = blogRepository.findAll().size();
 
@@ -154,6 +167,7 @@ public class BlogResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser
     public void getAllBlogs() throws Exception {
         // Initialize the database
         blogRepository.saveAndFlush(blog);
@@ -166,9 +180,10 @@ public class BlogResourceIT {
             .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
             .andExpect(jsonPath("$.[*].handle").value(hasItem(DEFAULT_HANDLE)));
     }
-    
+
     @Test
     @Transactional
+    @WithMockUser
     public void getBlog() throws Exception {
         // Initialize the database
         blogRepository.saveAndFlush(blog);
@@ -192,6 +207,7 @@ public class BlogResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser
     public void updateBlog() throws Exception {
         // Initialize the database
         blogRepository.saveAndFlush(blog);
@@ -239,6 +255,7 @@ public class BlogResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser
     public void deleteBlog() throws Exception {
         // Initialize the database
         blogRepository.saveAndFlush(blog);
